@@ -20,8 +20,10 @@ public class MoveController : MonoBehaviour
 
     [Header("플레이어 이동 및 점프")]
     Rigidbody2D rb;
-    BoxCollider2D coll;
+    CapsuleCollider2D capColl;
+    BoxCollider2D boxColl;
     Animator anim;
+    Camera mainCamera;
 
     Vector3 moveDir;
     bool isJump = false; // 점프 버그를 막기 위함
@@ -36,7 +38,9 @@ public class MoveController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        coll = GetComponent<BoxCollider2D>();
+        capColl = GetComponent<CapsuleCollider2D>();
+        boxColl = GetComponent<BoxCollider2D>();
+        mainCamera = Camera.main;
     }
   
     void Update()
@@ -44,6 +48,7 @@ public class MoveController : MonoBehaviour
         CheckGround();
         CheckGravity();
         Move();
+        CheckAim();
         Jump();
         DoAnimation();
     }
@@ -55,7 +60,7 @@ public class MoveController : MonoBehaviour
         isOnGround = false;
         if (verticalVelocity > 0f)
             return;
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, groundCheckLength, LayerMask.GetMask("Ground"));
+        RaycastHit2D hit = Physics2D.BoxCast(boxColl.bounds.center, boxColl.bounds.size, 0f, Vector2.down, groundCheckLength, LayerMask.GetMask("Ground"));
         if (hit)
             isOnGround = true;
     }
@@ -89,6 +94,34 @@ public class MoveController : MonoBehaviour
         rb.velocity = moveDir;
     }
 
+    private void CheckAim()
+    {
+        //Vector3 scale = transform.localScale;
+        //if (scale.x !=1.0f && moveDir.x>0)
+        //{ 
+        //    scale.x = 1.0f;
+        //    transform.localScale = scale;
+        //}
+        //else if(scale.x!=-1.0f && moveDir.x<0)
+        //{
+        //    scale.x = -1.0f;
+        //    transform.localScale = scale;
+        //}
+        Vector2 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition); // input.mouseposition => canvas의 위치 기준, 카메라의 상태에 따라 다름 (orthographic, perspective)
+        Vector2 playerPos = transform.position;
+        Vector2 fixedPos = mouseWorldPos - playerPos;
+        Vector3 playerScale = transform.localScale;
+        if(fixedPos.x>0 && playerScale.x != 1.0f)
+        {
+            playerScale.x = 1.0f;
+        }
+        else if(fixedPos.x<0 && playerScale.x != -1.0f)
+        {
+            playerScale.x = -1.0f;
+        }
+        transform.localScale = playerScale;
+    }
+
     private void Jump()
     {
         if (!isOnGround)
@@ -112,10 +145,10 @@ public class MoveController : MonoBehaviour
     #region Debug Method
     private void OnDrawGizmos()
     {
-        if(isOnGround)
-            Debug.DrawLine(transform.position, transform.position - new Vector3(0, groundCheckLength), Color.red);
-        else
-            Debug.DrawLine(transform.position, transform.position - new Vector3(0, groundCheckLength), Color.blue);
+        //if(isOnGround)
+        //    Debug.DrawLine(boxColl.bounds.center, boxColl.bounds.center- new Vector3(0, groundCheckLength), Color.red);
+        //else
+        //    Debug.DrawLine(boxColl.bounds.center, boxColl.bounds.center - new Vector3(0, groundCheckLength), Color.blue);
     }
     #endregion
 }
