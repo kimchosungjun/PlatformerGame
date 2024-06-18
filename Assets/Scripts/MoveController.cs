@@ -18,21 +18,27 @@ public class MoveController : MonoBehaviour
     // Handles는 using unityeditor를 해야함
     #endregion
 
-    [Header("플레이어 이동 및 점프")]
     Rigidbody2D rb;
     CapsuleCollider2D capColl;
     BoxCollider2D boxColl;
     Animator anim;
     Camera mainCamera;
 
+    [Header("플레이어 이동 및 점프")]
+    // 이동
     Vector3 moveDir;
-    bool isJump = false; // 점프 버그를 막기 위함
-    float verticalVelocity = 0f; // 수직으로 떨어지는 힘
-    [SerializeField] float jumpForce;
     [SerializeField] float moveSpeed;
+    // 점프
+    bool isJump = false; 
+    float verticalVelocity = 0f; 
+    [SerializeField] float jumpForce;
     [SerializeField] float groundCheckLength;
     [SerializeField] bool isOnGround;
-
+    // 벽 점프
+    bool isWallJump;
+    [SerializeField] bool isOnWall;
+    [SerializeField] float wallJumpTimer = 0.0f; // 나중에 ser지우기
+    [SerializeField] float wallJumpTime = 0.3f;
     #region Unity Cycle
     void Awake()
     {
@@ -43,6 +49,7 @@ public class MoveController : MonoBehaviour
         mainCamera = Camera.main;
     }
   
+
     void Update()
     {
         CheckGround();
@@ -54,7 +61,44 @@ public class MoveController : MonoBehaviour
     }
     #endregion
 
-    #region Method
+    #region Public Method
+    public void TriggerEnter(HitBoxType _hitBoxType, Collider2D _collider)
+    {
+        switch (_hitBoxType)
+        {
+            case HitBoxType.GroundCheck:
+                //isOnGround = true;
+                break;
+            case HitBoxType.WallCheck:
+                isOnWall = true;
+                break;
+            case HitBoxType.BodyCheck:
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void TriggerExit(HitBoxType _hitBoxType, Collider2D _collider)
+    {
+        switch (_hitBoxType)
+        {
+            case HitBoxType.GroundCheck:
+                //isOnGround = false;
+                break;
+            case HitBoxType.WallCheck:
+                isOnWall = false;
+                break;
+            case HitBoxType.BodyCheck:
+                break;
+            default:
+                break;
+        }
+    }
+
+    #endregion
+
+    #region Private Method
     private void CheckGround()
     {
         isOnGround = false;
@@ -67,7 +111,15 @@ public class MoveController : MonoBehaviour
 
     private void CheckGravity()
     {
-        if (!isOnGround)
+        if (isWallJump)
+        {
+            isWallJump = false;
+            Vector2 direction = rb.velocity;
+            direction.x *= -1f;
+            rb.velocity = direction;
+            verticalVelocity = jumpForce * 0.5f;
+        }
+        else if (!isOnGround)
         {
             verticalVelocity += Physics2D.gravity.y * Time.deltaTime;
             if (verticalVelocity < -10f)
@@ -126,6 +178,11 @@ public class MoveController : MonoBehaviour
     {
         if (!isOnGround)
         {
+            if (isOnWall && moveDir.x != 0 && Input.GetKeyDown(KeyCode.Space))
+            {
+                isWallJump = true;
+
+            }
             return;
         }
 
