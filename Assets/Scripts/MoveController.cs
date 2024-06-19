@@ -25,20 +25,26 @@ public class MoveController : MonoBehaviour
     Camera mainCamera;
 
     [Header("플레이어 이동 및 점프")]
-    // 이동
+    // Move
     Vector3 moveDir;
     [SerializeField] float moveSpeed;
-    // 점프
-    bool isJump = false; 
-    float verticalVelocity = 0f; 
+    // Jump
+    bool isJump = false; // When Jumping : True 
+    float verticalVelocity = 0.0f; 
     [SerializeField] float jumpForce;
     [SerializeField] float groundCheckLength;
     [SerializeField] bool isOnGround;
-    // 벽 점프
-    bool isWallJump;
+    // Wall Jump
+    bool isWallJump; // When Jumping : True
+    float wallJumpTimer = 0.0f;
     [SerializeField] bool isOnWall;
-    [SerializeField] float wallJumpTimer = 0.0f; // 나중에 ser지우기
     [SerializeField] float wallJumpTime = 0.3f;
+    // Dash
+    float dashTimer = 0.0f;
+    //float dashCoolTimer = 0.0f;
+    [SerializeField] float dashSpeed = 20.0f;
+    [SerializeField] float dashTime =0.3f;
+    //[SerializeField] float dashCoolTime = 1f;
     #region Unity Cycle
     void Awake()
     {
@@ -52,11 +58,13 @@ public class MoveController : MonoBehaviour
 
     void Update()
     {
+        CheckTimers();
         CheckGround();
         CheckGravity();
         Move();
         CheckAim();
         Jump();
+        Dash();
         DoAnimation();
     }
     #endregion
@@ -99,6 +107,22 @@ public class MoveController : MonoBehaviour
     #endregion
 
     #region Private Method
+    private void CheckTimers()
+    {
+        if (wallJumpTimer > 0.0f)
+        {
+            wallJumpTimer -= Time.deltaTime;
+            if (wallJumpTimer < 0.0f)
+                wallJumpTimer = 0.0f;
+        }
+        if (dashTimer > 0.0f)
+        {
+            dashTimer -= Time.deltaTime;
+            if (dashTimer < 0.0f)
+                dashTimer = 0.0f;
+        }
+    }
+
     private void CheckGround()
     {
         isOnGround = false;
@@ -111,13 +135,16 @@ public class MoveController : MonoBehaviour
 
     private void CheckGravity()
     {
-        if (isWallJump)
+        if (dashTimer > 0.0f)
+            return;
+        else if (isWallJump)
         {
             isWallJump = false;
             Vector2 direction = rb.velocity;
             direction.x *= -1f;
             rb.velocity = direction;
             verticalVelocity = jumpForce * 0.5f;
+            wallJumpTimer = wallJumpTime;
         }
         else if (!isOnGround)
         {
@@ -141,6 +168,10 @@ public class MoveController : MonoBehaviour
 
     private void Move()
     {
+        if (wallJumpTimer > 0.0f || dashTimer>0.0f)
+        {
+            return;
+        }
         moveDir.x = Input.GetAxisRaw("Horizontal") * moveSpeed; // Return -1 or 1
         moveDir.y = rb.velocity.y;
         rb.velocity = moveDir;
@@ -189,6 +220,16 @@ public class MoveController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             isJump = true;
+        }
+    }
+
+    private void Dash()
+    {
+        if (dashTimer == 0.0f && Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.F))
+        {
+            dashTimer = dashTime;
+            verticalVelocity = 0;
+            rb.velocity = new Vector2(transform.localScale.x>0 ? dashSpeed : -dashSpeed , verticalVelocity);
         }
     }
 
