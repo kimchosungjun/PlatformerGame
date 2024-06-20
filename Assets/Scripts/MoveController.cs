@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class MoveController : MonoBehaviour
 {
@@ -23,6 +25,7 @@ public class MoveController : MonoBehaviour
     BoxCollider2D boxColl;
     Animator anim;
     Camera mainCamera;
+    TrailRenderer trailRenderer;
 
     [Header("플레이어 이동 및 점프")]
     // Move
@@ -41,10 +44,16 @@ public class MoveController : MonoBehaviour
     [SerializeField] float wallJumpTime = 0.3f;
     // Dash
     float dashTimer = 0.0f;
-    //float dashCoolTimer = 0.0f;
+    float dashCoolTimer = 0.0f;
     [SerializeField] float dashSpeed = 20.0f;
-    [SerializeField] float dashTime =0.3f;
-    //[SerializeField] float dashCoolTime = 1f;
+    [SerializeField, Tooltip("대쉬가 지속되는 시간")] float dashTime =0.3f;
+    [SerializeField, Tooltip("대쉬의 쿨타임")] float dashCoolTime = 2f;
+
+    [Header("UI")]
+    [SerializeField] GameObject dashCoolTimeUI;
+    [SerializeField] Image imageFill;
+    [SerializeField] TMP_Text coolTimeText;
+
     #region Unity Cycle
     void Awake()
     {
@@ -53,6 +62,9 @@ public class MoveController : MonoBehaviour
         capColl = GetComponent<CapsuleCollider2D>();
         boxColl = GetComponent<BoxCollider2D>();
         mainCamera = Camera.main;
+        trailRenderer = GetComponent<TrailRenderer>();
+        trailRenderer.enabled = false;
+        InitUI();
     }
   
 
@@ -119,7 +131,26 @@ public class MoveController : MonoBehaviour
         {
             dashTimer -= Time.deltaTime;
             if (dashTimer < 0.0f)
+            {
                 dashTimer = 0.0f;
+                trailRenderer.enabled = false;
+                trailRenderer.Clear();
+            }
+        }
+        if (dashCoolTimer > 0.0f)
+        {
+            if (!dashCoolTimeUI.activeSelf)
+            {
+                dashCoolTimeUI.SetActive(true);
+            }
+            dashCoolTimer -= Time.deltaTime;
+            if (dashCoolTimer < 0.0f)
+            {
+                dashCoolTimer = 0.0f;
+                dashCoolTimeUI.SetActive(false);
+            }
+            imageFill.fillAmount = 1 - dashCoolTimer/ dashCoolTime;
+            coolTimeText.text = dashCoolTimer.ToString("F1");
         }
     }
 
@@ -179,6 +210,7 @@ public class MoveController : MonoBehaviour
 
     private void CheckAim()
     {
+        #region MouseInput
         //Vector3 scale = transform.localScale;
         //if (scale.x !=1.0f && moveDir.x>0)
         //{ 
@@ -190,6 +222,7 @@ public class MoveController : MonoBehaviour
         //    scale.x = -1.0f;
         //    transform.localScale = scale;
         //}
+        #endregion
         Vector2 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition); // input.mouseposition => canvas의 위치 기준, 카메라의 상태에 따라 다름 (orthographic, perspective)
         Vector2 playerPos = transform.position;
         Vector2 fixedPos = mouseWorldPos - playerPos;
@@ -225,9 +258,11 @@ public class MoveController : MonoBehaviour
 
     private void Dash()
     {
-        if (dashTimer == 0.0f && Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.F))
+        if (dashCoolTimer==0.0f && dashTimer == 0.0f && Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.F))
         {
+            trailRenderer.enabled = true;
             dashTimer = dashTime;
+            dashCoolTimer = dashCoolTime;
             verticalVelocity = 0;
             rb.velocity = new Vector2(transform.localScale.x>0 ? dashSpeed : -dashSpeed , verticalVelocity);
         }
@@ -238,6 +273,13 @@ public class MoveController : MonoBehaviour
         anim.SetInteger("Horizontal",(int)moveDir.x);
         anim.SetBool("IsOnGround",isOnGround);
     }
+
+    private void InitUI()
+    {
+        dashCoolTimeUI.SetActive(false);
+        imageFill.fillAmount = 0f;
+        coolTimeText.text="";
+     }
     #endregion
 
     #region Debug Method
