@@ -8,7 +8,8 @@ public class AttackController : MonoBehaviour
     [SerializeField] Transform hand;
     [SerializeField] GameObject throwWeapon;
     [SerializeField] Transform throwWeaponPos;
-
+    [SerializeField] Transform objectDynamic;
+    [SerializeField] Vector2 throwForce = new Vector2(10.0f,0f);
     private void Start()
     {
         mainCamera = Camera.main;
@@ -41,6 +42,11 @@ public class AttackController : MonoBehaviour
 
     private void CreateWeapon()
     {
-        GameObject go = Instantiate(throwWeapon);
+        GameObject go = Instantiate(throwWeapon, throwWeaponPos.position,throwWeaponPos.rotation, objectDynamic);
+        ThrowSword goWeapon = go.GetComponent<ThrowSword>();
+        bool isRight = transform.localScale.x > 0 ? true : false;
+        if (!isRight)
+            throwForce *= -1;
+        goWeapon.SetForce(transform.rotation*throwForce, isRight);
     }
 }

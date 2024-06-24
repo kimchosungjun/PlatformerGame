@@ -7,7 +7,6 @@ public class ThrowSword : MonoBehaviour
     Rigidbody2D rb;
     Vector2 force;
     bool isRight;
-
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -20,6 +19,12 @@ public class ThrowSword : MonoBehaviour
 
     private void Update()
     {
-        transform.Rotate(new Vector3(0, 0, (isRight ? -360 : 360) * Time.deltaTime));
+        transform.Rotate(new Vector3(0, 0, (isRight ? 360 : -360) * Time.deltaTime));
+    }
+
+    public void SetForce(Vector2 _force, bool _isRight)
+    {
+        force = _force;
+        isRight = _isRight;
     }
 }
