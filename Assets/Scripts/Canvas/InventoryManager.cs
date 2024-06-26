@@ -7,6 +7,8 @@ public class InventoryManager : MonoBehaviour
     public static InventoryManager Instance;
     [SerializeField] GameObject viewInventory; // 인벤토리 뷰
     [SerializeField] GameObject fabItem; // 인벤토리에 생성될 프리팹
+    [SerializeField] Transform canvasInventory;
+    public Transform CanvasInventory => canvasInventory; 
     List<Transform> listTrsInventory = new List<Transform>();
     private void Awake()
     {
@@ -56,4 +58,14 @@ public class InventoryManager : MonoBehaviour
         }
         return -1;
     }
+
+    public bool GetItem(string _idx)
+    {
+        int slotNum = GetEmptyItemSlot();
+        if (slotNum == -1)
+            return false;
+        GameObject go = Instantiate(fabItem, listTrsInventory[slotNum]);
+        return true;
+    }
+
 }
