@@ -12,7 +12,7 @@ public class ItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     private void Start()
     {
-        canvasGroup = GetComponent<CanvasGroup>();
+        canvasGroup = GetComponentInParent<CanvasGroup>();
     }
 
     /// <summary>
