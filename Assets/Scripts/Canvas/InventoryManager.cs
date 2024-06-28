@@ -65,6 +65,8 @@ public class InventoryManager : MonoBehaviour
         if (slotNum == -1)
             return false;
         GameObject go = Instantiate(fabItem, listTrsInventory[slotNum]);
+        ItemUI gosc = go.GetComponent<ItemUI>();
+        gosc.SetItem(_idx);
         return true;
     }
 

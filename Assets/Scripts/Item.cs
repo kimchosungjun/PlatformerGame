@@ -12,8 +12,8 @@ public class Item : MonoBehaviour
         CItemData testData = new CItemData();
         testData.idx = "000001";
         testData.sprite = GetComponent<SpriteRenderer>().sprite.name;
-        string val = JsonConvert.SerializeObject(testData);
-        Debug.Log(val);
+        //string val = JsonConvert.SerializeObject(testData);
+        //Debug.Log(val);
     }
    
 

@@ -4,15 +4,29 @@ using UnityEngine;
 
 public class SpriteManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public static SpriteManager Instance;
+
+    private void Awake()
     {
-        
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    [SerializeField] List<Sprite> allSprites;
+    public Sprite GetSprite(string _spriteName)
     {
-        
+        int count = allSprites.Count;
+        for(int i=0; i<count; i++)
+        {
+            if (_spriteName == allSprites[i].name)
+                return allSprites[i];
+        }
+        return null;
     }
 }

@@ -9,10 +9,13 @@ public class ItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     Transform canvas; // 드래그 시 위치하는 곳
     Transform beforeParent; // 돌아올 위치
     CanvasGroup canvasGroup;
+    Image itemImage;
 
     private void Start()
     {
-        canvasGroup = GetComponentInParent<CanvasGroup>();
+        canvasGroup = GetComponentInParent<CanvasGroup>(); //getcomponent를 사용
+        canvas = InventoryManager.Instance.CanvasInventory;
+        itemImage = GetComponent<Image>();
     }
 
     /// <summary>
@@ -21,7 +24,8 @@ public class ItemUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     /// <param name="_idx"></param>
     public void SetItem(string _idx)
     {
-        canvas = InventoryManager.Instance.CanvasInventory;
+        string name = JsonManager.Instance.GetSpriteNameFromIdx(_idx);
+        itemImage.sprite = SpriteManager.Instance.GetSprite(name);
     }
 
     public void OnBeginDrag(PointerEventData eventData)
